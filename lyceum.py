@@ -15,19 +15,27 @@ q.put(url)
 used = [url]
 count = 0
 sum = 0
-while not (q.empty() or count > 75):
+while not (q.empty()):
     count+=1;
     cur_url = q.get()
     print('Retrieving', cur_url)
-    handle = urllib.request.urlopen(cur_url, context=ctx)
-    html = handle.read().decode()
+    try:
+        handle = urllib.request.urlopen(cur_url, context=ctx)
+        html = handle.read().decode()
+    except:
+        print('Wrong page')
+        continue
     soup = BeautifulSoup(html, "html.parser")
     for link in soup.find_all('a'):
         new_url = link.get('href')
-        if new_url.startswith("http://liceum.cv.ua") and new_url not in used:
+        if new_url is None:
+            continue
+        if new_url.startswith("http://liceum.cv.ua") and not new_url.startswith("http://liceum.cv.ua/wp-content/") and new_url not in used:
             q.put(new_url)
             used.append(new_url)
+            used.append(new_url+"#respond")
     text=soup.get_text()
     occur = re.findall(search_obj, text)
     sum+=len(occur)
-    print("Have found", len(occur), "matches,", "sum is", sum)
+    print("Have found there", len(occur), "matches,", "so far there is", sum)
+print("=======Done! Have visited", count, "pages")
